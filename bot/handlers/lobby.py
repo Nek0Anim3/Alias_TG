@@ -39,18 +39,31 @@ async def lobbiesList(callback: types.CallbackQuery):
 @router.callback_query(F.data == "quit_lobby")
 async def quitLobby(callback: types.CallbackQuery):
     uid = callback.from_user.id
+    name = callback.from_user.full_name
     #if 
-    await deleteLobbyDB(uid)
+    await deleteLobbyDB(uid, name)
     await main_menu(None, callback)
 
 @router.callback_query(F.data.startswith("join_lobby:"))#LobbyCallback.filter(F.data == "join"))
 async def joinLobby(callback: types.CallbackQuery):
     print("Joining lobby...")
-    lobby_id = callback.data.split(":")[1] #int(callback_data.lobby_id)
+    
+    #int()
+    lobby_id = int(callback.data.split(":")[1])
+    #на таких костылях даже мой дед не ходил после перелома
+
+    #int()
     user_id = int(callback.from_user.id)
     print("Lobby_ID In joinLobby, ", lobby_id)
-    await joinLobbyDB(lobby_id, user_id)
-    print("JOINED LOBBY ", user_id)     
+
+
+    #изгой общества снизу 👇👇👇👇👇👇👇
+
+    await joinLobbyDB(lobby_id , user_id)
+    
+    #изгой общества сверху 👆👆👆👆👆👆
+    #этот дурачoк думал что сможет типизировать в пайтон боже нищий
+    
     await callback.message.edit_text(
         text="tipa connected",
         reply_markup=types.InlineKeyboardMarkup(
