@@ -1,20 +1,22 @@
-from db import get_Db
-from motor.motor_asyncio import AsyncIOMotorClient
+import asyncio
 
-from aiogram import types
+from db import get_Db
+from db.userHandle import addPlayertoDB
+
 
 async def createLobbyDB(uid: int, name: str):
     db = get_Db()
     col = db.get_collection('lobbys')
-    add = await col.insert_one({
-        "host": uid,
-        "name": name,
-        "status": "waiting", 
-        "players": [uid], 
-        "pack": "none"
-    })
-    print("Lobby DB id: ", add.inserted_id)
-    print("Lobby created, host_id: ", uid)
+    await asyncio.gather(
+        col.insert_one({
+            "host": uid,
+            "name": name,
+            "status": "waiting",
+            "players": [uid],
+            "pack": "none"
+        }),
+        addPlayertoDB(uid, name, uid, "host")
+    )
 
 #-------------------------------
 
@@ -65,9 +67,10 @@ def getLobbyIdList():
     return lobbies_id_list
 
 
-async def joinLobbyDB(lobby_id: int, user_id: int):
+async def joinLobbyDB(lobby_id: int, user_id: int, usname: str):
     db = get_Db()
     col = db.get_collection('lobbys')
     print("Got lobby_id,", type(lobby_id))
-    col.find_one_and_update({"host": lobby_id}, {'$push': {"players": user_id}}) 
+    col.find_one_and_update({"host": lobby_id}, {'$push': {"players": user_id}})
+    await addPlayertoDB(user_id, usname, lobby_id, "player")
     print("Added ", user_id)

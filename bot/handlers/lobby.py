@@ -4,6 +4,9 @@ from bot.keyboards.lobbies_list_board import lobbies_list_kb
 from bot.handlers.start import main_menu
 from bot.menus.LobbyMenu import lobby_menu
 import asyncio
+
+from db.userHandle import removePlayerfromDB
+
 router = Router()
 
 @router.callback_query(F.data == "create_lobby")
@@ -27,7 +30,7 @@ async def lobbiesList(callback: types.CallbackQuery):
 async def quitLobby(callback: types.CallbackQuery):
     uid = callback.from_user.id
     name = callback.from_user.full_name
-    await asyncio.gather(dbLobby.deleteLobbyDB(uid, name), main_menu(None, callback))
+    await asyncio.gather(dbLobby.deleteLobbyDB(uid, name), removePlayerfromDB(uid) ,main_menu(None, callback))
 
 @router.callback_query(F.data.startswith("join_lobby:"))#LobbyCallback.filter(F.data == "join"))
 async def joinLobby(callback: types.CallbackQuery):
@@ -37,5 +40,5 @@ async def joinLobby(callback: types.CallbackQuery):
     user_id = callback.from_user.id
     print("Lobby_ID In joinLobby, ", lobby_id)
 
-    await dbLobby.joinLobbyDB(lobby_id , user_id)
+    await dbLobby.joinLobbyDB(lobby_id , user_id, callback.from_user.full_name)
     await lobby_menu(lobby_id, callback)
