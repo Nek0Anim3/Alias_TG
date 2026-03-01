@@ -31,7 +31,6 @@ async def deleteLobbyDB(uid: int, name: str):
 
 
 
-
 lobbies_id_list = []
 lobbies_list = []
 async def fetchLobbiesList():

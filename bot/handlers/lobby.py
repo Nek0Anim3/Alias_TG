@@ -1,33 +1,20 @@
 from aiogram import Router, types, F, Bot
-from db.lobbyHandle import createLobbyDB, fetchLobbiesList, deleteLobbyDB, joinLobbyDB
+import db.lobbyHandle as dbLobby
 from bot.keyboards.lobbies_list_board import lobbies_list_kb
 from bot.handlers.start import main_menu
-from bot.callbacks.lobby import LobbyCallback
-
+from bot.menus.LobbyMenu import lobby_menu
+import asyncio
 router = Router()
 
 @router.callback_query(F.data == "create_lobby")
 async def createLobby(callback: types.CallbackQuery):
-    print(callback.from_user.full_name)
-    await createLobbyDB(callback.from_user.id, callback.from_user.full_name)
+    await dbLobby.createLobbyDB(callback.from_user.id, callback.from_user.full_name)
+    await lobby_menu(callback.from_user.id, callback)
 
-    await callback.message.edit_text(
-        text="да да мгм", 
-        reply_markup=types.InlineKeyboardMarkup(
-        inline_keyboard=[[
-            types.InlineKeyboardButton(text="Почати гру", callback_data="start_game"),
-            types.InlineKeyboardButton(text="Налаштування", callback_data="settings")
-        ],
-        [
-            types.InlineKeyboardButton(text="Обрати пак", callback_data="pack"),
-            types.InlineKeyboardButton(text="Вийти", callback_data="quit_lobby")
-        ]
-        ]
-    ))
 
 @router.callback_query(F.data == "list_lobby")
 async def lobbiesList(callback: types.CallbackQuery):
-    lobbies = await fetchLobbiesList()
+    lobbies = await dbLobby.fetchLobbiesList()
     keyboard = await lobbies_list_kb(lobbies)
     await callback.message.edit_text(
         text="Список лобі",
@@ -40,25 +27,15 @@ async def lobbiesList(callback: types.CallbackQuery):
 async def quitLobby(callback: types.CallbackQuery):
     uid = callback.from_user.id
     name = callback.from_user.full_name
-    #if 
-    await deleteLobbyDB(uid, name)
-    await main_menu(None, callback)
+    await asyncio.gather(dbLobby.deleteLobbyDB(uid, name), main_menu(None, callback))
 
 @router.callback_query(F.data.startswith("join_lobby:"))#LobbyCallback.filter(F.data == "join"))
 async def joinLobby(callback: types.CallbackQuery):
     print("Joining lobby...")
     
     lobby_id = int(callback.data.split(":")[1])
-    user_id = int(callback.from_user.id)
+    user_id = callback.from_user.id
     print("Lobby_ID In joinLobby, ", lobby_id)
 
-    await joinLobbyDB(lobby_id , user_id)
-
-    
-    await callback.message.edit_text(
-        text="tipa connected",
-        reply_markup=types.InlineKeyboardMarkup(
-            inline_keyboard=[[types.InlineKeyboardButton(text="Back", callback_data="start")]] 
-        )
-        #inline_keyboard=)
-    )
+    await dbLobby.joinLobbyDB(lobby_id , user_id)
+    await lobby_menu(lobby_id, callback)
