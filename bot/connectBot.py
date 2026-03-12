@@ -1,16 +1,21 @@
 import discord
-from discord.ext import commands
 import os
 from dotenv import load_dotenv
-
 load_dotenv()
 
-bot = commands.Bot(command_prefix="!", intents=discord.Intents.default())
+bot = None
 async def start_bot():
-    async with bot:
-        await bot.load_extension("bot.cogs.main_menu_cog")
-        await bot.start(os.getenv("BOT"))
+    global bot
+    bot = discord.Bot(intents=discord.Intents.default())
 
-# @bot.event
-# async def on_ready():
-#     await bot.tree.sync()
+    @bot.event
+    async def on_ready():
+        print(f"Bot online {bot.user}")
+
+    bot.load_extension('bot.cogs.main_menu_cog')
+    await bot.start(os.getenv("BOT"))
+
+def get_bot() -> discord.Bot:
+    if bot is None:
+        raise RuntimeError("Бот не ініціалізований")
+    return bot

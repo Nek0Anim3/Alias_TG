@@ -1,23 +1,27 @@
+import asyncio
+
 import discord
+from bot.views.base import BaseView
+from db.lobbyHandle import createLobbyDB, deleteLobbyDB, getLobbyCode
+from db.userHandle import removePlayerfromDB
 
-from bot.states.states import set_state
 
-class LobbyMenuView(discord.ui.View):
-    def __init__(self):
-        super().__init__(timeout=None)
+class LobbyMenuView(BaseView):
+    def __init__(self, uname: str, code: int):
+        super().__init__(back_view=None)
+        self.menu_text = f"Лобі {uname} \nКількість гравців в лобі: 1\nКод приєднання: {code}"
+        self.uname = uname
+        self.code = code
 
-    @discord.ui.button(label="Створити лобі", style=discord.ButtonStyle.success)
-    async def create_lobby(self, button: discord.ui.Button, interaction: discord.Interaction):
-        await  interaction.edit_original_response(
-            content="Введіть назву лобі",
-            view=None
-        )
-        set_state(interaction.user.id, "lobby_name_input")
+    @discord.ui.button(label="Почати Гру", style=discord.ButtonStyle.primary, row=0)
+    async def start_game(self, button: discord.ui.Button, interaction: discord.Interaction):
+        pass
 
-    @discord.ui.button(label="Назад", style=discord.ButtonStyle.secondary)
-    async def back(self, button: discord.ui.Button, interaction: discord.Interaction):
-        from bot.views.main_menu import MainMenu
-        await interaction.edit_original_response(
-            content="Меню лобі",
-            view=MainMenu()
+    @discord.ui.button(label="Вийти", style=discord.ButtonStyle.secondary, row=4)
+    async def exit_lobby(self, button: discord.ui.Button, interaction: discord.Interaction):
+        from bot.views.main_menu import MainMenuView
+        await asyncio.gather(
+            deleteLobbyDB(interaction.user.id),
+            removePlayerfromDB(interaction.user.id),
+            self.goto(interaction, MainMenuView())
         )
