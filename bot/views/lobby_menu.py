@@ -9,10 +9,10 @@ from db.userHandle import removePlayerfromDB
 
 
 class LobbyMenuView(BaseView):
-    def __init__(self, uname: str, code: int, playerCount: int, players: list):
+    def __init__(self, uname: str, code: int, player_count: int, players: list):
         self.uname = uname
         self.code = code
-        self.playerCount = playerCount
+        self.player_count = player_count
         self.players = players
         self.message: discord.Message = None
         self.menu_text = self._build_text()
@@ -28,8 +28,8 @@ class LobbyMenuView(BaseView):
         )
 
 
-    async def refreshLobby(self, playerCount: int):
-        self.playerCount = playerCount
+    async def refreshLobby(self, player_count: int):
+        self.player_count = player_count
         self.menu_text = self._build_text()
         if self.message:
             await self.message.edit(content=self.menu_text, view=self)

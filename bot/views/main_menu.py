@@ -16,7 +16,7 @@ class MainMenuView(BaseView):
         from bot.views.lobby_menu import LobbyMenuView
         await  createLobbyDB(interaction.user.id, interaction.user.name)
         code = await getLobbyCode(interaction.user.id)
-        view = LobbyMenuView(code=code, uname=interaction.user.name, playerCount=1, players=[interaction.user.name])
+        view = LobbyMenuView(code=code, uname=interaction.user.name, player_count=1, players=[interaction.user.name])
         lobby_state.register_view(code, interaction.user.id, view)
         await self.goto(interaction, view)
 
